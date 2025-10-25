@@ -1,44 +1,43 @@
 function main
+    % Detects different fruits (apple, capsicum, lemon) from an image using
+    % RGB thresholding, extracts the largest component of each fruit, and 
+    % visualizes their bounding boxes and centroids.
+    
     clc; close all;
 
+    %Read the image
     img = imread('Fruits.jpg');
-    img = imgaussfilt(img, 2);  % Gaussian smoothing (σ=2)
+    %Apply the gaussain filter for smoothing
+    img = imgaussfilt(img, 2);
 
-    R = img(:,:,1); G = img(:,:,2); B = img(:,:,3);
+    % Separate RGB channels for thresholding
+    R = img(:,:,1);
+    G = img(:,:,2);
+    B = img(:,:,3);
 
-    % --- Thresholds (adjust if needed) ---
+    % Color Thresholding for each fruit
+    % Creating Binary Masks for each fruits using RGB Channels
     apple_mask = (R > 150 & R < 255) & (G > 20 & G < 110) & (B > 60 & B < 120);     
     capsicum_mask = ((R > 150 & R < 255) & (G > 70 & G < 150) & (B < 5));
     lemon_mask = (R > 190 & R < 255) & (G > 150 & G < 255) & (B > 10 & B<120);
-    % Remove tiny noise first (optional)
     
-    apple_mask = double(apple_mask);            % Convert to double
-    apple_mask = imgaussfilt(apple_mask, 2);    % Smooth edges
-    apple_mask = apple_mask > 0.5; 
-    %apply median filter
-    apple_mask = medfilt2(apple_mask, [5 5]);  % Apply median filter to reduce noise
-    figure;imshow(apple_mask);
+    % Each mask is converted to double and filters are applied to make the image smooth and remove noise 
     
-    capsicum_mask = double(capsicum_mask);            % Convert to double
-    capsicum_mask = imgaussfilt(capsicum_mask, 2);    % Smooth edges
-    capsicum_mask = capsicum_mask > 0.5; 
-    %apply median filter
-    capsicum_mask = medfilt2(capsicum_mask, [5 5]);  % Apply median filter to reduce noise
-    figure;imshow(capsicum_mask);
+    apple_mask    = refine_mask(apple_mask);
+    figure; imshow(apple_mask); title('Apple Mask');
+    
+    capsicum_mask = refine_mask(capsicum_mask);
+    figure; imshow(capsicum_mask); title('Capsicum Mask');
 
-    lemon_mask = double(lemon_mask);            % Convert to double
-    lemon_mask = imgaussfilt(lemon_mask, 2);    % Smooth edges
-    lemon_mask = lemon_mask > 0.5; 
-    %apply median filter
-    lemon_mask = medfilt2(lemon_mask, [5 5]);  % Apply median filter to reduce noise
-    figure;imshow(lemon_mask);
+    lemon_mask    = refine_mask(lemon_mask);
+    figure; imshow(lemon_mask); title('Lemon Mask');
 
     % Extract largest connected component for each fruit
     apple_clean = get_largest_component(apple_mask);
     capsicum_clean = get_largest_component(capsicum_mask);
     lemon_clean = get_largest_component(lemon_mask);
 
-    % Show results
+    % Display the results
     figure; imshow(img); hold on;
     draw_box_and_centroids(apple_clean, 'r', 'Apple');
     draw_box_and_centroids(capsicum_clean, 'c', 'Capsicum');
@@ -46,7 +45,25 @@ function main
     hold off;
 end
 
-%% ---------- helper: connected-component labeling ----------
+
+%% ========================================================================
+%%                       HELPER FUNCTIONS
+%% ========================================================================
+
+function mask_out=refine_mask(mask)
+    % Converts a logical mask to double, applies Gaussian and median filtering
+    % for smoother edges and less noise.
+    % Input:
+    %   mask_in  - Binary mask of a segmented fruit
+    % Output:
+    %   mask_out - Cleaned binary mask after filtering
+    mask = double(mask);
+    mask = imgaussfilt(mask, 2);        % Smoothen edges
+    mask = mask > 0.5;                  % Re-binarize
+    mask = medfilt2(mask, [5 5]);       % Median filter to remove salt-and-pepper noise
+    mask_out = mask;
+end
+
 function largest_mask = get_largest_component(bin_mask)
     % get_largest_component
     % Performs row-by-row connected component labeling (4-connectivity)
