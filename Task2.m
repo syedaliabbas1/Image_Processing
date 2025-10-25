@@ -127,12 +127,6 @@ function calc_perimeter(binaryMask)
         end
     end
     
-    % Handle edges of image
-    boundary(1,:) = binaryMask(1,:);
-    boundary(m,:) = binaryMask(m,:);
-    boundary(:,1) = binaryMask(:,1);
-    boundary(:,n) = binaryMask(:,n);
-    
     % ---- STEP 2: Extract boundary coordinates ----
     [rows, cols] = find(boundary);
     
@@ -204,70 +198,9 @@ function calc_perimeter(binaryMask)
     % ---- STEP 6: Visualize ----
     figure, imshow(binaryMask);
     hold on;
-    plot(ordered_boundary(:,2), ordered_boundary(:,1), 'r-', 'LineWidth', 1.5);
-    plot(ordered_boundary(1,2), ordered_boundary(1,1), 'go', 'MarkerSize', 8, 'LineWidth', 2);
     title(['Perimeter: ' num2str(perimeter, '%.2f') ', Circularity: ' num2str(circularity, '%.3f')]);
     hold off;
 end
-
-% function calc_perimeter(binaryMask)
-%     [m, n] = size(binaryMask);
-%     edge_points = []; % to store all perimeter coordinates
-% 
-%     % ---- 1. Scan left to right and right to left (row-wise) ----
-%     for i = 1:m
-%         % left to right
-%         left_idx = find(binaryMask(i, :) == 1, 1, 'first');
-%         if ~isempty(left_idx)
-%             edge_points = [edge_points; i, left_idx];
-%         end
-% 
-%         % right to left
-%         right_idx = find(binaryMask(i, :) == 1, 1, 'last');
-%         if ~isempty(right_idx)
-%             edge_points = [edge_points; i, right_idx];
-%         end
-%     end
-% 
-%     % ---- 2. Scan top to bottom and bottom to top (column-wise) ----
-%     for j = 1:n
-%         % top to bottom
-%         top_idx = find(binaryMask(:, j) == 1, 1, 'first');
-%         if ~isempty(top_idx)
-%             edge_points = [edge_points; top_idx, j];
-%         end
-% 
-%         % bottom to top
-%         bottom_idx = find(binaryMask(:, j) == 1, 1, 'last');
-%         if ~isempty(bottom_idx)
-%             edge_points = [edge_points; bottom_idx, j];
-%         end
-%     end
-% 
-%     % ---- 3. Remove duplicates ----
-%     edge_points = unique(edge_points, 'rows');
-% 
-%     % ---- 4. Calculate perimeter (Euclidean distance) ----
-%     % Sort points roughly in boundary order (optional heuristic)
-%     edge_points = sortrows(edge_points, [1 2]);  % row, then column order
-%     perimeter = 0;
-%     for k = 2:size(edge_points,1)
-%         dx = edge_points(k,2) - edge_points(k-1,2);
-%         dy = edge_points(k,1) - edge_points(k-1,1);
-%         perimeter = perimeter + sqrt(dx^2 + dy^2);
-%     end
-%     disp(['Perimeter (approx): ', num2str(perimeter)]);
-%     % ---- 5. Visualize the outline on top of the object ----
-%     figure, imshow(binaryMask);
-%     hold on;
-%     plot(edge_points(:,2), edge_points(:,1), 'r.', 'MarkerSize', 5);
-%     title('Perimeter and Circularity');
-%     M00 =sum(binaryMask(:));
-%     circularity= (4*pi*M00)/(perimeter^2);
-%     % Calculate and display the circularity of the detected object
-%     disp(['Circularity: ', num2str(circularity)]);
-% end
-
 
 function draw_box_and_centroids(mask)
     if ~any(mask(:)), return; end
